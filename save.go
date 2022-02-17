@@ -43,6 +43,20 @@ WHERE pubkey = $1 AND registered_at IS NOT NULL
 	case nostr.KindContactList:
 		// delete past contact lists from this same pubkey
 		relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = 3`, evt.PubKey)
+	case nostr.KindDeletion:
+		for _, target := range evt.Tags {
+			// Validate tag
+			if len(target) < 2 {
+				break
+			}
+			if target[0] != "e" {
+				break
+			}
+
+			// delete target
+			relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND id = $2`, evt.PubKey, target[1])
+		}
+		return nil
 	}
 
 	// insert

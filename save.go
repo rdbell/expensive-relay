@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/fiatjaf/go-nostr"
 )
@@ -14,6 +17,13 @@ func (relay *ExpensiveRelay) SaveEvent(evt *nostr.Event) error {
 	// disallow large contents
 	if len(evt.Content) > 10000 {
 		return errors.New("event content too large")
+	}
+
+	// Telegram event notifications
+	if relay.bot != nil {
+		chatID, _ := strconv.Atoi(relay.TelegramChatID)
+		msg := tgbotapi.NewMessage(int64(chatID), string(evt.Serialize()))
+		relay.bot.Send(msg)
 	}
 
 	// check if user is registered

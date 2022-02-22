@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/kelseyhightower/envconfig"
@@ -19,11 +20,14 @@ type ExpensiveRelay struct {
 	IndexTemplate    string `envconfig:"INDEX_TEMPLATE" default:"./templates/index_example.html.tmpl"`
 	InvoiceTemplate  string `envconfig:"INVOICE_TEMPLATE" default:"./templates/invoice_example.html.tmpl"`
 	PriceSats        string `envconfig:"PRICE_SATS" default:"500"`
+	TelegramAPIKey   string `envconfig:"TELEGRAM_API_KEY" default:""`
+	TelegramChatID   string `envconfig:"TELEGRAM_CHAT_ID" default:""`
 
 	LightningBackendSettings rc.LightningBackendSettings
 
-	db *sqlx.DB
-	ln relampago.Wallet
+	db  *sqlx.DB
+	ln  relampago.Wallet
+	bot *tgbotapi.BotAPI
 }
 
 func (relay *ExpensiveRelay) Name() string {
@@ -50,6 +54,11 @@ func (relay *ExpensiveRelay) Init() error {
 	} else {
 		db.Mapper = reflectx.NewMapperFunc("json", sqlx.NameMapper)
 		relay.db = db
+	}
+
+	// Telegram API
+	if relay.TelegramAPIKey != "" && relay.TelegramChatID != "" {
+		relay.bot, _ = tgbotapi.NewBotAPI(relay.TelegramAPIKey)
 	}
 
 	// lightning

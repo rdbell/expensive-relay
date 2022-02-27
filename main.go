@@ -62,7 +62,7 @@ func (relay *ExpensiveRelay) Init() error {
 	}
 
 	// lightning
-	relay.ln, err = rc.Connect()
+	relay.ln, err = rc.Connect(relay.LightningBackendSettings)
 	if err != nil {
 		return fmt.Errorf("failed to connect to lightning backend: %w", err)
 	}

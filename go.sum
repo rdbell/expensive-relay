@@ -659,6 +659,8 @@ github.com/rdbell/relampago v0.1.1-0.20220201175947-ff1dd222e9b8 h1:IdZDRS26Xzj3
 github.com/rdbell/relampago v0.1.1-0.20220201175947-ff1dd222e9b8/go.mod h1:Kb3Glh7WilsTr9ELkQse9MjGdcfEt4m5cJaAH5JzerM=
 github.com/rdbell/relampago v0.1.1 h1:odqBqr8bZn3y9WGon30vHO5+2/ZqQg0/kaElEG/exNQ=
 github.com/rdbell/relampago v0.1.1/go.mod h1:tHgD6O8aadk3uqE/oDxlm/TrMI1Xs3sW2cZ715V3eUs=
+github.com/rdbell/relampago v0.1.3 h1:ZYWJL/0DnpI66/Z4TE/aJKJfLXdwca5XUlt2m2CHn2I=
+github.com/rdbell/relampago v0.1.3/go.mod h1:tHgD6O8aadk3uqE/oDxlm/TrMI1Xs3sW2cZ715V3eUs=
 github.com/rdbell/relayer v1.2.0 h1:14s1T2w2jCR+20rr5R4nSvZF6z9nJkSP+hCy6K9CtWo=
 github.com/rdbell/relayer v1.2.0/go.mod h1:op843ruNU3q94wvlqjUNb0ybET19pz0d18qty2w3heg=
 github.com/rdbell/relayer v1.2.1 h1:BG3TENRPLK6KgWh2+mRKiFTtc3kuKWm/gf0DQZKpt9c=

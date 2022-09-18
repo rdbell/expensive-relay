@@ -19,12 +19,14 @@ func (relay *ExpensiveRelay) SaveEvent(evt *nostr.Event) error {
 		return errors.New("event content too large")
 	}
 
-	// Telegram event notifications
-	if relay.bot != nil {
-		chatID, _ := strconv.Atoi(relay.TelegramChatID)
-		msg := tgbotapi.NewMessage(int64(chatID), string(evt.Serialize()))
-		relay.bot.Send(msg)
-	}
+	go func() {
+		// Telegram event notifications
+		if relay.bot != nil {
+			chatID, _ := strconv.Atoi(relay.TelegramChatID)
+			msg := tgbotapi.NewMessage(int64(chatID), string(evt.Serialize()))
+			relay.bot.Send(msg)
+		}
+	}()
 
 	// check if user is registered
 	var registered bool

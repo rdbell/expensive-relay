@@ -19,21 +19,10 @@ func (relay *ExpensiveRelay) SaveEvent(evt *nostr.Event) error {
 		return errors.New("event content too large")
 	}
 
-	go func() {
-		// Telegram event notifications
-		if relay.bot != nil {
-			chatID, _ := strconv.Atoi(relay.TelegramChatID)
-			msg := tgbotapi.NewMessage(int64(chatID), string(evt.Serialize()))
-			relay.bot.Send(msg)
-		}
-	}()
-
 	// check if user is registered
 	var registered bool
-	if err := relay.db.Get(&registered, `
-SELECT true FROM registered_users
-WHERE pubkey = $1 AND registered_at IS NOT NULL
-    `, evt.PubKey); err != nil {
+	if err := relay.db.Get(&registered, `SELECT true FROM registered_users WHERE pubkey = $1 AND registered_at IS NOT NULL`,
+		evt.PubKey); err != nil {
 		if err == sql.ErrNoRows {
 			return fmt.Errorf("%s not registered", evt.PubKey)
 		} else {
@@ -43,18 +32,27 @@ WHERE pubkey = $1 AND registered_at IS NOT NULL
 		return fmt.Errorf("%s's invoice was not paid", evt.PubKey)
 	}
 
+	go func() {
+		// Telegram event notifications
+		if relay.bot != nil {
+			chatID, _ := strconv.Atoi(relay.TelegramChatID)
+			msg := tgbotapi.NewMessage(int64(chatID), string(evt.Serialize()))
+			_, _ = relay.bot.Send(msg)
+		}
+	}()
+
 	// react to different kinds of events
 	switch evt.Kind {
 	case nostr.KindSetMetadata:
 		// delete past set_metadata events from this user
-		relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = 0`, evt.PubKey)
+		_, _ = relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = 0`, evt.PubKey)
 	case nostr.KindRecommendServer:
 		// delete past recommend_server events equal to this one
-		relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = 2 AND content = $2`,
+		_, _ = relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = 2 AND content = $2`,
 			evt.PubKey, evt.Content)
 	case nostr.KindContactList:
 		// delete past contact lists from this same pubkey
-		relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = 3`, evt.PubKey)
+		_, _ = relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = 3`, evt.PubKey)
 	case nostr.KindDeletion:
 		for _, target := range evt.Tags {
 			// Validate tag
@@ -66,7 +64,7 @@ WHERE pubkey = $1 AND registered_at IS NOT NULL
 			}
 
 			// delete target
-			relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND id = $2`, evt.PubKey, target[1])
+			_, _ = relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND id = $2`, evt.PubKey, target[1])
 		}
 		return nil
 	}
@@ -78,7 +76,7 @@ WHERE pubkey = $1 AND registered_at IS NOT NULL
         VALUES ($1, $2, $3, $4, $5, $6, $7)
     `, evt.ID, evt.PubKey, evt.CreatedAt, evt.Kind, tagsj, evt.Content, evt.Sig)
 	if err != nil {
-		if strings.Index(err.Error(), "UNIQUE") != -1 {
+		if strings.Contains(err.Error(), "UNIQUE") {
 			// already exists
 			return nil
 		}
